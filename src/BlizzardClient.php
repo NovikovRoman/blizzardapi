@@ -35,7 +35,7 @@ class BlizzardClient implements OAuthClientInterface
      * @param $scope
      * @param $redirectUri
      */
-    public function __construct($clientID, $clientSecret, $scope, $redirectUri)
+    public function __construct(string $clientID, string $clientSecret, array $scope = [], string $redirectUri = "")
     {
         $this->clientID = $clientID;
         $this->clientSecret = $clientSecret;
