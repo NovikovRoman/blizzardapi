@@ -3,10 +3,8 @@
 namespace BlizzardApi\Service;
 
 use BlizzardApi\BlizzardClient;
-use BlizzardApi\Exceptions\ExceptionExpired;
 use BlizzardApi\Exceptions\ExceptionForbidden;
 use BlizzardApi\Exceptions\ExceptionNotFound;
-use BlizzardApi\Geo;
 use GuzzleHttp\Exception\GuzzleException;
 
 abstract class AbstractService
@@ -30,10 +28,10 @@ abstract class AbstractService
      */
     protected function requestGet($url, $vars = [], $params = [])
     {
-        $resp = $this->blizzardClient->requestGet($url, $vars, $params);
         if (!empty($params['namespace'])) {
             $params['namespace'] .= '-' . $this->blizzardClient->getRegion();
         }
+        $resp = $this->blizzardClient->requestGet($url, $vars, $params);
 
         return json_decode($resp->getBody()->getContents(), true);
     }
