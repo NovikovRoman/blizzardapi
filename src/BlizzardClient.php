@@ -21,6 +21,8 @@ class BlizzardClient implements OAuthClientInterface
     private $clientSecret;
     /** @var Geo */
     private $geo;
+    /** @var bool */
+    private $enableLocale;
     /** @var Client */
     private $httpClient;
     private $scope;
@@ -41,6 +43,7 @@ class BlizzardClient implements OAuthClientInterface
         $this->clientSecret = $clientSecret;
         $this->scope = $scope;
         $this->redirectUri = $redirectUri;
+        $this->localeOn();
     }
 
     public static function create($clientID, $clientSecret, $scope, $redirectUri, Geo $geo)
@@ -74,6 +77,18 @@ class BlizzardClient implements OAuthClientInterface
         return $this->geo->getLocale();
     }
 
+    public function localeOn()
+    {
+        $this->enableLocale = true;
+        return $this;
+    }
+
+    public function localeOff()
+    {
+        $this->enableLocale = false;
+        return $this;
+    }
+
     /**
      * @param $url
      * @param array $vars
@@ -83,17 +98,15 @@ class BlizzardClient implements OAuthClientInterface
      * @throws ExceptionNotFound
      * @throws GuzzleException
      */
-    public function requestGet($url, $vars = [], $params = [])
+    public function customRequestGet($url, $vars = [], $params = [])
     {
         if (empty($this->httpClient)) {
-            throw new InvalidArgumentException('Empty geo.');
+            throw new InvalidArgumentException('Empty http client.');
         }
 
         foreach ($vars as $code => $value) {
             $url = str_replace(':' . $code, urldecode($value), $url);
         }
-
-        $params['locale'] = $this->getLocale();
 
         $url .= empty($params) ? '' : '?' . http_build_query($params);
         $request = new Request('GET', $url);
@@ -118,6 +131,23 @@ class BlizzardClient implements OAuthClientInterface
         }
 
         throw new RequestException('Bad status code  ' . $resp->getStatusCode() . '.', $request, $resp);
+    }
+
+    /**
+     * @param $url
+     * @param array $vars
+     * @param array $params
+     * @return ResponseInterface
+     * @throws ExceptionForbidden
+     * @throws ExceptionNotFound
+     * @throws GuzzleException
+     */
+    public function requestGet($url, $vars = [], $params = [])
+    {
+        if ($this->enableLocale) {
+            $params['locale'] = $this->getLocale();
+        }
+        return $this->customRequestGet($url, $vars, $params);
     }
 
     /**
